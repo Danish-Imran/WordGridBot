@@ -1,4 +1,5 @@
 from dictionary import initialize_dictionary
+from selenium import webdriver
 
 point_values = { # original values for each letter
     "A": 1,
@@ -29,6 +30,7 @@ point_values = { # original values for each letter
     "Z": 10,
 }
 
+
 def calculate_point_value(input_word): 
     # calculates the points gained from entering a word
     scoring_word = input_word # creates duplicate
@@ -42,6 +44,7 @@ def calculate_point_value(input_word):
 
     return word_point_total
 
+
 def is_word_formable(word, letters):
     # sees if a word is formable with the given letters
     word_set = set(word)
@@ -50,12 +53,21 @@ def is_word_formable(word, letters):
     return word_set.issubset(letters_set) # returns boolean
 
 
+# set up game
+
 word_list = initialize_dictionary() # creates dictionary
 
+def launch_browser():
+    driver = webdriver.Chrome()
+    driver.get('https://metzger.media/games/word-grid/')
+    while(True):
+        pass
+
+launch_browser()
 
 # begin game loop
 
-nine_letters = "PAZRMTEUK"
+nine_letters = ""
 possible_words = []
 
 for word in word_list:
