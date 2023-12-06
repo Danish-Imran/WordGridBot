@@ -1,5 +1,9 @@
 from dictionary import initialize_dictionary
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 point_values = { # original values for each letter
     "A": 1,
@@ -57,13 +61,15 @@ def is_word_formable(word, letters):
 
 word_list = initialize_dictionary() # creates dictionary
 
-def launch_browser():
-    driver = webdriver.Chrome()
-    driver.get('https://metzger.media/games/word-grid/')
-    while(True):
-        pass
+driver = webdriver.Chrome()
+driver.get('https://metzger.media/games/word-grid/')
 
-launch_browser()
+try:
+    play_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'play-button')))
+    play_button.click()
+except:
+    driver.quit()
+
 
 # begin game loop
 
