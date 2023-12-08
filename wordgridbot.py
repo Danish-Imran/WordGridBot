@@ -1,9 +1,11 @@
 from dictionary import initialize_dictionary
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 
 point_values = { # original values for each letter
     "A": 1,
@@ -65,19 +67,27 @@ driver = webdriver.Chrome()
 driver.get('https://metzger.media/games/word-grid/')
 
 try:
-    play_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'play-button')))
+    play_button = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CLASS_NAME, 'play-button')))
     play_button.click()
+    actions = ActionChains(driver)
+
+    nine_letters = ""
+    possible_words = []
+
+    letter_board = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'letter')))
+    for i in letter_board[:9]:
+        nine_letters += i.text
+
+    for word in word_list:
+        if is_word_formable(word, nine_letters):
+            possible_words.append(word)
+
+    possible_words = sorted(possible_words, key=calculate_point_value) # sorts lowest to highest point value
+    actions = ActionChains(driver)
+    actions.send_keys(possible_words[-1])
+    actions.send_keys(Keys.RETURN)
+    actions.perform()
+
+
 except:
     driver.quit()
-
-
-# begin game loop
-
-nine_letters = ""
-possible_words = []
-
-for word in word_list:
-    if is_word_formable(word, nine_letters):
-        possible_words.append(word)
-
-possible_words = sorted(possible_words, key=calculate_point_value) # sorts lowest to highest point value
