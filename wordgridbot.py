@@ -66,28 +66,57 @@ word_list = initialize_dictionary() # creates dictionary
 driver = webdriver.Chrome()
 driver.get('https://metzger.media/games/word-grid/')
 
+
 try:
+    word_count = 0
     play_button = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CLASS_NAME, 'play-button')))
     play_button.click()
+
     actions = ActionChains(driver)
 
-    nine_letters = ""
-    possible_words = []
 
-    letter_board = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'letter')))
-    for i in letter_board[:9]:
-        nine_letters += i.text
+    while word_count < 500: # enters 500 words before stopping, otherwise program goes forever
+        word_count += 1
+        valid_word = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, '//*[@id="bg"]/div[4]/div/div/h2[3]'))) # checks if word can be submitted
+        letter_board = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'letter'))) # finds elements with letters
 
-    for word in word_list:
-        if is_word_formable(word, nine_letters):
-            possible_words.append(word)
+        nine_letters = ""
+        possible_words = []
+        next_best_word_index = 0
 
-    possible_words = sorted(possible_words, key=calculate_point_value) # sorts lowest to highest point value
-    actions = ActionChains(driver)
-    actions.send_keys(possible_words[-1])
-    actions.send_keys(Keys.RETURN)
-    actions.perform()
+        for i in letter_board[:9]: # collect the letters
+            nine_letters += i.text
+        
+        for word in word_list: # determine possible words
+            if is_word_formable(word, nine_letters):
+                possible_words.append(word)
 
+        possible_words = sorted(possible_words, key=calculate_point_value, reverse=True) # sorts highest to lowest point values
+
+        actions.send_keys(possible_words[next_best_word_index])
+        actions.perform() # type first word
+        validity_of_word = valid_word.get_attribute("class") # check if guess is valid or not
+
+        while validity_of_word == "score-text guess": # if word is not valid
+            next_best_word_index += 1
+            actions.reset_actions()
+            
+            for i in range(len(possible_words[next_best_word_index - 1])):
+                actions.send_keys(Keys.BACK_SPACE)
+            actions.perform() # clear what was inputted
+            actions.reset_actions()
+
+            actions.send_keys(possible_words[next_best_word_index]) # test the next best word
+            actions.perform()
+            validity_of_word = valid_word.get_attribute("class")
+
+
+        actions.reset_actions() # enter word and reset actions
+        actions.send_keys(Keys.RETURN)
+        actions.perform()
+        actions.reset_actions()
+    
+    time.sleep(5000) # after program ends, keeps tab open for 5000 seconds
 
 except:
     driver.quit()
